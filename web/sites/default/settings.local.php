@@ -48,8 +48,8 @@ $config['system.logging']['error_level'] = 'verbose';
 
 //$base_url = "http://localhost:8000";
 
-// //config settings
-// $settings["config_sync_directory"] = '../config/sync';
+//config settings
+$settings["config_sync_directory"] = '../config/sync';
 // $settings['skip_permissions_hardening'] = TRUE;
 
 // // config split settings
