@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+      "bmewburn.vscode-intelephense-client",
+      "mblode.twig-language-2",
+      "redhat.vscode-yaml",
+      "stanislav.vscode-drupal",
+      "tsega.drupal-8-twig-snippets",
+      "xdebug.php-debug",
+      "neilbrayfield.php-docblocker"
+    ]
+  }

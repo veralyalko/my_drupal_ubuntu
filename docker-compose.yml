@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  db:
+    image: mariadb:10.11
+    container_name: my_drupal_ubuntu_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: drupal10
+      MYSQL_USER: drupal10
+      MYSQL_PASSWORD: drupal10
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+  php:
+    build: ./php-ubuntu
+    container_name: my_drupal_ubuntu_php
+    restart: always
+    volumes:
+      - ./web:/var/www/web
+      - ./vendor:/var/www/vendor
+      - ./php.ini:/etc/php/8.2/fpm/conf.d/99-custom.ini
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    container_name: my_drupal_ubuntu_nginx
+    restart: always
+    ports:
+      - "8088:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./web:/var/www/web
+    depends_on:
+      - php
+      - db
+
+  ubuntu:
+    image: ubuntu:22.04
+    container_name: my_drupal_ubuntu_shell
+    restart: always
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./web:/var/www/web
+
+volumes:
+  db_data:

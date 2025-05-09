@@ -1,0 +1,5 @@
+{
+    "phpcs.standard": "Drupal",
+    "phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
+    "editor.formatOnSave": true
+  }
