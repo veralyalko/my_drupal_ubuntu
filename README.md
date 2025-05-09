@@ -193,3 +193,16 @@ cd /var/www/web
 - Check status: `./vendor/bin/drush status`
 - One-time login: `./vendor/bin/drush uli`
 - Clear cache: `./vendor/bin/drush cr`
+
+## Updates to add composer. Pull latest from main
+
+- docker-compose up --build -d
+
+- docker exec -it my_drupal_ubuntu_php composer --version
+- docker exec -it my_drupal_ubuntu_php composer show
+- docker exec -it my_drupal_ubuntu_php composer install
+
+- ./vendor/bin/drush cr (clear cache)
+- ./vendor/bin/drush cex (this will export all the configs from configs to the database)
+- ./vendor/bin/drush cex (this will export all the configs from database into configurations)
+- ./vendor/bin/drush config-status (this command will show the difference between the database and configurations)
