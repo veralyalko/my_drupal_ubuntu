@@ -27,8 +27,8 @@ $databases['default']['default'] = [
 ];
 
 $settings['file_public_path'] = 'sites/default/files';
-$config['system.performance']['css']['preprocess'] = TRUE;
-$config['system.performance']['js']['preprocess'] = TRUE;
+// $config['system.performance']['css']['preprocess'] = TRUE;
+// $config['system.performance']['js']['preprocess'] = TRUE;
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
 $config['system.logging']['error_level'] = 'verbose';
