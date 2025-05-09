@@ -16,7 +16,9 @@ services:
       - "3307:3306"
 
   php:
-    build: ./php-ubuntu
+    build:
+      context: .
+      dockerfile: ./php-ubuntu/Dockerfile
     container_name: my_drupal_ubuntu_php
     restart: always
     volumes:
