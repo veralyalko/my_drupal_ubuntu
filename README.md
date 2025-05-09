@@ -1,75 +1,195 @@
-<img alt="Drupal Logo" src="https://www.drupal.org/files/Wordmark_blue_RGB.png" height="60px">
 
-Drupal is an open source content management platform supporting a variety of
-websites ranging from personal weblogs to large community-driven websites. For
-more information, visit the Drupal website, [Drupal.org][Drupal.org], and join
-the [Drupal community][Drupal community].
+# Drupal Docker Setup: For Existing Drupal Projects
 
-## Contributing
+This guide explains how to run your existing Drupal 10/11 project using Docker Compose with:
 
-Drupal is developed on [Drupal.org][Drupal.org], the home of the international
-Drupal community since 2001!
+- **MariaDB** (database)
+- **PHP** (custom build)
+- **Nginx** (web server)
+- **Ubuntu helper container** for debugging and tools (optional)
 
-[Drupal.org][Drupal.org] hosts Drupal's [GitLab repository][GitLab repository],
-its [issue queue][issue queue], and its [documentation][documentation]. Before
-you start working on code, be sure to search the [issue queue][issue queue] and
-create an issue if your aren't able to find an existing issue.
+---
 
-Every issue on Drupal.org automatically creates a new community-accessible fork
-that you can contribute to. Learn more about the code contribution process on
-the [Issue forks & merge requests page][issue forks].
+## 1. System Requirements
 
-## Usage
+- Docker Engine installed  
+  _Check:_ `docker --version`
+- Docker Compose installed  
+  _Check:_ `docker-compose --version`
 
-For a brief introduction, see [USAGE.txt](/core/USAGE.txt). You can also find
-guides, API references, and more by visiting Drupal's [documentation
-page][documentation].
+---
 
-You can quickly extend Drupal's core feature set by installing any of its
-[thousands of free and open source modules][modules]. With Drupal and its
-module ecosystem, you can often build most or all of what your project needs
-before writing a single line of code.
+## 2. Expected Project Structure
 
-## Changelog
+The existing Drupal project should have the following structure (or be adjusted to fit):
 
-Drupal keeps detailed [change records][changelog]. You can search Drupal's
-changes for a record of every notable breaking change and new feature since
-2011.
+```bash
+my_drupal_ubuntu/
+├── docker-compose.yml         # Docker Compose file
+├── nginx.conf                 # Nginx configuration
+├── php.ini                    # (Optional) PHP settings override
+├── web/                       # Your existing Drupal site's document root
+│   ├── index.php
+│   ├── core/
+│   ├── sites/
+│   └── ...
+├── vendor/                    # Composer dependencies
+├── composer.json              # Existing Drupal project’s composer file
+├── php-ubuntu/                # PHP Docker build context
+│   └── Dockerfile
+```
 
-## Security
+> **Note:** If your Drupal site uses `/docroot` instead of `/web`, update `docker-compose.yml` and `nginx.conf` accordingly.
 
-For a list of security announcements, see the [Security advisories
-page][Security advisories] (available as [an RSS feed][security RSS]). This
-page also describes how to subscribe to these announcements via email.
+---
 
-For information about the Drupal security process, or to find out how to report
-a potential security issue to the Drupal security team, see the [Security team
-page][security team].
+## 3. Files & Configs
 
-## Need a helping hand?
+- `docker-compose.yml`
+- `nginx.conf`
+- `php-ubuntu/Dockerfile`
+- `php.ini` (optional, to override PHP settings like memory limits or file upload size)
 
-Visit the [Support page][support] or browse [over a thousand Drupal
-providers][service providers] offering design, strategy, development, and
-hosting services.
+---
 
-## Legal matters
+## 4. Setup Instructions (for Existing Drupal Project)
 
-Know your rights when using Drupal by reading Drupal core's
-[license](/core/LICENSE.txt).
+### 1. Prep your project
 
-Learn about the [Drupal trademark and logo policy here][trademark].
+Copy your existing Drupal site into the `web/` folder:
 
-[Drupal.org]: https://www.drupal.org
-[Drupal community]: https://www.drupal.org/community
-[GitLab repository]: https://git.drupalcode.org/project/drupal
-[issue queue]: https://www.drupal.org/project/issues/drupal
-[issue forks]: https://www.drupal.org/drupalorg/docs/gitlab-integration/issue-forks-merge-requests
-[documentation]: https://www.drupal.org/documentation
-[changelog]: https://www.drupal.org/list-changes/drupal
-[modules]: https://www.drupal.org/project/project_module
-[security advisories]: https://www.drupal.org/security
-[security RSS]: https://www.drupal.org/security/rss.xml
-[security team]: https://www.drupal.org/drupal-security-team
-[service providers]: https://www.drupal.org/drupal-services
-[support]: https://www.drupal.org/support
-[trademark]: https://www.drupal.com/trademark
+```bash
+my_drupal_ubuntu/
+├── web/
+│   ├── index.php
+│   ├── core/
+│   ├── modules/
+│   └── ...
+├── composer.json
+```
+
+---
+
+### 2. Check `vendor/` exists
+
+If not, run:
+
+```bash
+composer install
+```
+
+---
+
+### 3. Set database credentials
+
+Check `web/sites/default/settings.php` (or your local settings file) and ensure your database settings match:
+
+```php
+'database' => [
+    'default' => [
+        'default' => [
+            'database' => 'drupal10',
+            'username' => 'drupal10',
+            'password' => 'drupal10',
+            'host' => 'my_drupal_ubuntu_db',
+            'port' => '3306',
+            'driver' => 'mysql',
+            'prefix' => '',
+        ],
+    ],
+],
+```
+
+---
+
+### 4. Build and run containers
+
+In the project root, run:
+
+```bash
+docker-compose up --build -d
+```
+
+---
+
+### 5. Check container status
+
+```bash
+docker-compose ps
+```
+
+---
+
+### 6. Test the site in your browser
+
+- **Local machine:** http://localhost:8088
+- **Azure Dev Box:** Replace `localhost` with your Dev Box IP address.
+
+---
+
+## 5. Import a database
+
+To import your database:
+
+```bash
+docker exec -i my_drupal_ubuntu_db mysql -u drupal10 -pdrupal10 drupal10 < your_database.sql
+```
+
+---
+
+## 6. Useful Docker Commands
+
+Check logs:
+
+```bash
+docker-compose logs nginx
+docker-compose logs php
+docker-compose logs db
+```
+
+Enter the PHP container:
+
+```bash
+docker exec -it my_drupal_ubuntu_php bash
+```
+
+Stop all containers:
+
+```bash
+docker-compose down
+```
+
+Rebuild & restart:
+
+```bash
+docker-compose down
+docker-compose up --build -d
+```
+
+---
+
+## 7. Using the Ubuntu Helper Container
+
+To debug or run Linux tools inside the helper container:
+
+```bash
+docker exec -it my_drupal_ubuntu_shell bash
+apt update && apt install vim
+cd /var/www/web
+```
+
+---
+
+## What to Look Out for in an Existing Project
+
+- Ensure your existing site's folder (`web/`, `docroot/`, etc.) matches the paths in `nginx.conf` and `docker-compose.yml`.
+- Verify that `vendor/` exists.
+- Make sure the DB credentials (user/password/database name) in `settings.php` (or local settings file) match those in Docker Compose.
+
+---
+
+## Drush Commands
+
+- Check status: `./vendor/bin/drush status`
+- One-time login: `./vendor/bin/drush uli`
+- Clear cache: `./vendor/bin/drush cr`
