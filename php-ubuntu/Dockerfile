@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     nano \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache
 
-# OPTIONAL: Xdebug (commented out for now)
+# OPTIONAL: Xdebug (fully commented out for now)
 # RUN pecl install xdebug \
 #     && docker-php-ext-enable xdebug \
 #     && echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
@@ -32,11 +32,17 @@ WORKDIR /var/www
 # Add Composer binary (from the official Composer image)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Fix SSL and network issues for Composer in Azure Dev Box
+RUN composer config -g secure-http false \
+    && composer config -g repo.packagist composer https://packagist.org \
+    && composer config --global process-timeout 600
+
 # Copy only composer files to leverage Docker layer caching
 COPY composer.json composer.lock /var/www/
 
 # Install PHP dependencies via Composer
-RUN composer install --no-interaction --prefer-dist --no-dev
+RUN COMPOSER_ALLOW_SUPERUSER=1 \
+    composer install --no-interaction --prefer-dist --no-dev
 
-# Now copy the rest of the project
+# Now copy the rest of the Drupal project
 COPY . /var/www
