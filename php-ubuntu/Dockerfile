@@ -51,7 +51,7 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     libzip-dev \
     nano \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache
     # && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
     # && pecl install xdebug \
     # && docker-php-ext-enable xdebug \
