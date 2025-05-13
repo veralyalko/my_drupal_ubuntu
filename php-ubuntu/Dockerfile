@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     nano \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
-    && pecl install xdebug-3.3.1 \
+    && pecl install xdebug \
     && docker-php-ext-enable xdebug \
     && echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
@@ -27,12 +27,12 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /var/www
 
-# Add Composer binary (from the official Composer image)
+# Add Composer binary from official image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Composer steps (still commented out for Azure Dev Box env)
+# Optional composer step if needed:
 # COPY composer.json composer.lock /var/www/
 # RUN composer install --no-interaction --prefer-dist --no-dev
 
-# Now copy the rest of the Drupal project
-COPY . /var/wwww
+# Copy entire project
+COPY . /var/www
