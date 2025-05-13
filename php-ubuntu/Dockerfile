@@ -5,6 +5,7 @@ RUN echo "default_socket_timeout=600" > /usr/local/etc/php/conf.d/99-timeout.ini
 
 # Update APT with retries and timeouts for slow environments
 RUN apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout="60" && apt-get install -y \
+    ca-certificates \
     git \
     curl \
     libpng-dev \
