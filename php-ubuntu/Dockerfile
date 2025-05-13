@@ -18,7 +18,7 @@ RUN apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout="60" && apt-g
     libzip-dev \
     nano \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
-    && pecl install -f xdebug >> /tmp/xdebug-install.log 2>&1 \
+    && pecl install -f xdebug \
     && docker-php-ext-enable xdebug \
     && echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
