@@ -18,16 +18,23 @@ RUN apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout="60" && apt-g
     mariadb-client \
     libzip-dev \
     nano \
+    # 👇 These are required for building and installing Xdebug
+    autoconf \
+    gcc \
+    make \
+    pkg-config \
+    libtool \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
     && pecl install -f xdebug \
-    && docker-php-ext-enable xdebug 
+    && docker-php-ext-enable xdebug
+    # && docker-php-ext-enable xdebug \
     # && echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     # && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     # && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     # && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     # && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     # && echo "xdebug.log_level=10" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-    
+
 # Set working directory
 WORKDIR /var/www
 
