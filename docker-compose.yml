@@ -14,10 +14,10 @@ services:
       - "3307:3306"
 
   php:
-    # build:
-    #   context: .
-    #   dockerfile: ./php-ubuntu/Dockerfile
-    image: my_drupal_php_image:latest
+    build:
+      context: .
+      dockerfile: ./php-ubuntu/Dockerfile
+    # image: my_drupal_php_image:latest # this line to reference the prebuilt image
     container_name: my_drupal_ubuntu_php
     restart: always
     volumes:
