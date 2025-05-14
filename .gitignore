@@ -47,3 +47,6 @@
 node_modules/
 .lando.local.yml
 *.css.map
+
+# compressed files
+*.tar

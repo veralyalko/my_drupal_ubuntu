@@ -14,9 +14,10 @@ services:
       - "3307:3306"
 
   php:
-    build:
-      context: .
-      dockerfile: ./php-ubuntu/Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: ./php-ubuntu/Dockerfile
+    image: my_drupal_php_image:latest
     container_name: my_drupal_ubuntu_php
     restart: always
     volumes:
@@ -27,6 +28,7 @@ services:
     #  - "9003:9003"
     depends_on:
       - db
+    command: ["php-fpm"]
 
   nginx:
     image: nginx:latest
