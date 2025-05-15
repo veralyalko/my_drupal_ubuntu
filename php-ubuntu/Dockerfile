@@ -44,53 +44,107 @@
 # CMD ["php-fpm8.3", "-F"]
 
 
+# Version 2
+# FROM php:8.3-fpm
 
+# # Set higher PHP socket timeout to avoid PECL install failures on slow networks
+# RUN echo "default_socket_timeout=600" > /usr/local/etc/php/conf.d/99-timeout.ini
+
+# # Update APT with retries and timeouts for slow environments
+# RUN apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout="60" && apt-get install -y \
+#     ca-certificates \
+#     git \
+#     curl \
+#     libpng-dev \
+#     libjpeg-dev \
+#     libfreetype6-dev \
+#     libonig-dev \
+#     libxml2-dev \
+#     zip \
+#     unzip \
+#     mariadb-client \
+#     libzip-dev \
+#     nano \
+#     # 👇 These are required for building and installing Xdebug
+#     autoconf \
+#     gcc \
+#     make \
+#     pkg-config \
+#     libtool \
+#     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache
+#     # && pecl install -f xdebug \
+#     # && docker-php-ext-enable xdebug
+#     # && docker-php-ext-enable xdebug \
+#     # && echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     # && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     # && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     # && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     # && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     # && echo "xdebug.log_level=10" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# # Set working directory
+# WORKDIR /var/www
+
+# # Add Composer binary from the official Composer image
+# COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# # Optional: Pre-copy composer files and install dependencies
+# # COPY composer.json composer.lock /var/www/
+# # RUN composer install --no-interaction --prefer-dist --no-dev
+
+# # Now copy the rest of your Drupal project
+# COPY . /var/www
+
+
+# Version 3
 FROM php:8.3-fpm
 
-# Set higher PHP socket timeout to avoid PECL install failures on slow networks
-RUN echo "default_socket_timeout=600" > /usr/local/etc/php/conf.d/99-timeout.ini
-
-# Update APT with retries and timeouts for slow environments
-RUN apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout="60" && apt-get install -y \
-    ca-certificates \
+# Install system and PHP build dependencies
+RUN apt-get update && apt-get install -y \
+    autoconf \
+    gcc \
+    make \
     git \
     curl \
+    unzip \
+    libtool \
+    pkg-config \
+    libxml2-dev \
+    libzip-dev \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    mariadb-client \
-    libzip-dev \
+    default-mysql-client \
+    default-libmysqlclient-dev \
     nano \
-    # 👇 These are required for building and installing Xdebug
-    autoconf \
-    gcc \
-    make \
-    pkg-config \
-    libtool \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache
-    # && pecl install -f xdebug \
-    # && docker-php-ext-enable xdebug
-    # && docker-php-ext-enable xdebug \
-    # && echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    # && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    # && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    # && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    # && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    # && echo "xdebug.log_level=10" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Download and compile Xdebug from source
+RUN mkdir -p /usr/src/php/ext \
+    && cd /usr/src/php/ext \
+    && curl -fsSL https://github.com/xdebug/xdebug/archive/refs/tags/3.3.1.zip -o xdebug.zip \
+    && unzip xdebug.zip && mv xdebug-3.3.1 xdebug && rm xdebug.zip \
+    && cd xdebug \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && docker-php-ext-enable xdebug
+
+# # Configure Xdebug
+# RUN echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#     && echo "xdebug.log_level=10" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 # Set working directory
 WORKDIR /var/www
 
-# Add Composer binary from the official Composer image
+# Add Composer from official image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Optional: Pre-copy composer files and install dependencies
-# COPY composer.json composer.lock /var/www/
-# RUN composer install --no-interaction --prefer-dist --no-dev
-
-# Now copy the rest of your Drupal project
+# Copy your Drupal project
 COPY . /var/www
