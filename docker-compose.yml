@@ -12,23 +12,20 @@ services:
       - db_data:/var/lib/mysql
     ports:
       - "3307:3306"
-
   php:
     build:
       context: .
       dockerfile: ./php-ubuntu/Dockerfile
-    # image: my_drupal_php_image:latest # this line to reference the prebuilt image
     container_name: my_drupal_ubuntu_php
     restart: always
     volumes:
       - ./web:/var/www/web
       - ./vendor:/var/www/vendor
-      - ./php.ini:/usr/local/etc/php/conf.d/99-custom.ini
-    # ports:
-    #  - "9003:9003"
+      - ./php.ini:/etc/php/8.3/fpm/conf.d/99-custom.ini
     depends_on:
       - db
-    command: ["php-fpm"]
+    command: ["php-fpm8.3", "-F"]
+
 
   nginx:
     image: nginx:latest
