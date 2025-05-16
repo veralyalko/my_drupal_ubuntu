@@ -50,3 +50,7 @@ node_modules/
 
 # compressed files
 *.tar
+
+# Ignore all .crt and .key files globally
+*.crt
+*.key

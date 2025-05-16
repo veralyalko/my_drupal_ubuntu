@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip && \
     update-ca-certificates
 
+# Copy custom SSL certs
+COPY certs/*.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
 # Enable PHP 8.2 from Ondrej PPA
 RUN add-apt-repository ppa:ondrej/php -y && \
     apt-get update && apt-get install -y \
@@ -41,6 +45,78 @@ RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
 
 # Create PHP socket directory
 RUN mkdir -p /run/php && chown www-data:www-data /run/php && chmod 755 /run/php
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy config files
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
+COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Add Composer from official image
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy your Drupal project
+COPY . /var/www
+
+# Expose HTTP port
+EXPOSE 80
+
+# Start services via Supervisor
+CMD ["/usr/bin/supervisord", "-n"]
+
+
+
+
+# FROM ubuntu:22.04
+
+# # Avoid interactive prompts
+# ENV DEBIAN_FRONTEND=noninteractive
+
+# # Install base packages and update CA certs
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     ca-certificates \
+#     curl \
+#     wget \
+#     gnupg \
+#     lsb-release \
+#     software-properties-common \
+#     unzip && \
+#     update-ca-certificates
+
+# # Enable PHP 8.2 from Ondrej PPA
+# RUN add-apt-repository ppa:ondrej/php -y && \
+#     apt-get update && apt-get install -y \
+#     nginx \
+#     php8.2-fpm \
+#     php8.2-cli \
+#     php8.2-mysql \
+#     php8.2-mbstring \
+#     php8.2-xml \
+#     php8.2-pgsql \
+#     php8.2-curl \
+#     php8.2-gd \
+#     php8.2-zip \
+#     php8.2-bcmath \
+#     php8.2-soap \
+#     php8.2-intl \
+#     php8.2-xdebug \
+#     supervisor \
+#     git \
+#     unzip && \
+#     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# # Ensure php-fpm is available at standard path
+# RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
+
+# # Create PHP socket directory
+# RUN mkdir -p /run/php && chown www-data:www-data /run/php && chmod 755 /run/php
+
+
+
+
+
 
 # # Copy Composer binary from official image
 # COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
