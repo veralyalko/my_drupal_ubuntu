@@ -54,3 +54,4 @@ node_modules/
 # Ignore all .crt and .key files globally
 *.crt
 *.key
+*.pem
