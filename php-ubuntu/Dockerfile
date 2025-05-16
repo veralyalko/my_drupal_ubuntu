@@ -8,19 +8,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     wget \
-    gnupg \
+    gnupg2 \
     lsb-release \
     software-properties-common \
-    unzip && \
+    unzip \
+    apt-transport-https && \
     update-ca-certificates
 
 # Copy custom SSL certs
 COPY certs/*.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
-# Enable PHP 8.2 from Ondrej PPA
-RUN add-apt-repository ppa:ondrej/php -y && \
-    apt-get update && apt-get install -y \
+# Install PHP repo separately to avoid cert issues during HTTPS calls
+RUN add-apt-repository ppa:ondrej/php -y
+
+# Install PHP, Nginx, and other packages
+RUN apt-get update && apt-get install -y \
     nginx \
     php8.2-fpm \
     php8.2-cli \
@@ -49,7 +52,7 @@ RUN mkdir -p /run/php && chown www-data:www-data /run/php && chmod 755 /run/php
 # Set working directory
 WORKDIR /var/www
 
-# Copy config files
+# Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
 COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -65,6 +68,7 @@ EXPOSE 80
 
 # Start services via Supervisor
 CMD ["/usr/bin/supervisord", "-n"]
+
 
 
 
