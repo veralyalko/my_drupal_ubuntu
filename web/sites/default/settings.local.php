@@ -33,6 +33,11 @@ $settings['file_public_path'] = 'sites/default/files';
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
 $config['system.logging']['error_level'] = 'verbose';
 
+$config['system.performance']['css']['preprocess'] = TRUE;
+$config['system.performance']['js']['preprocess'] = TRUE;
+$config['system.performance']['cache']['page']['max_age'] = 900;
+$config['system.performance']['response']['gzip'] = TRUE;
+
 //# Settings for SMTP
 //$config['smtp.settings'] = [
 //  'transport' => 'smtp',

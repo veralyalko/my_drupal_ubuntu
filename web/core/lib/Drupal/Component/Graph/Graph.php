@@ -4,25 +4,6 @@ namespace Drupal\Component\Graph;
 
 /**
  * Directed acyclic graph manipulation.
- *
- * This class represents a directed acyclic graph (DAG) and provides methods
- * for processing and sorting it.
- *
- * Example of a graph structure:
- * @code
- *   1────►2────►3
- *         │     │
- *         │     ▼
- *         └───► 4
- * @endcode
- *
- * Example of defining a graph in PHP:
- * @code
- *   $graph[1]['edges'][2] = 1;
- *   $graph[2]['edges'][3] = 1;
- *   $graph[2]['edges'][4] = 1;
- *   $graph[3]['edges'][4] = 1;
- * @endcode
  */
 class Graph {
 
@@ -32,14 +13,29 @@ class Graph {
   protected $graph;
 
   /**
-   * Instantiates the directed acyclic graph object.
+   * Instantiates the depth first search object.
    *
-   * @param array $graph
-   *   A three-dimensional associative array, with the first keys being the
-   *   names of the vertices, which can be strings or numbers. The second key is
-   *   'edges', whose value is an array keyed by the names of the vertices
-   *   connected to it; the values in this array can be simply TRUE or may
-   *   contain other data.
+   * @param $graph
+   *   A three dimensional associated array, with the first keys being the names
+   *   of the vertices, these can be strings or numbers. The second key is
+   *   'edges' and the third one are again vertices, each such key representing
+   *   an edge. Values of array elements are copied over.
+   *
+   *   Example:
+   *   @code
+   *     $graph[1]['edges'][2] = 1;
+   *     $graph[2]['edges'][3] = 1;
+   *     $graph[2]['edges'][4] = 1;
+   *     $graph[3]['edges'][4] = 1;
+   *   @endcode
+   *
+   *   On return you will also have:
+   *   @code
+   *     $graph[1]['paths'][2] = 1;
+   *     $graph[1]['paths'][3] = 1;
+   *     $graph[2]['reverse_paths'][1] = 1;
+   *     $graph[3]['reverse_paths'][1] = 1;
+   *   @endcode
    */
   public function __construct($graph) {
     $this->graph = $graph;
@@ -91,13 +87,13 @@ class Graph {
   /**
    * Performs a depth-first search on a graph.
    *
-   * @param array $state
+   * @param $state
    *   An associative array. The key 'last_visit_order' stores a list of the
    *   vertices visited. The key components stores list of vertices belonging
    *   to the same the component.
-   * @param string|int $start
+   * @param $start
    *   An arbitrary vertex where we started traversing the graph.
-   * @param string|int|null $component
+   * @param $component
    *   The component of the last vertex.
    *
    * @see \Drupal\Component\Graph\Graph::searchAndSort()

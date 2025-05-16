@@ -13,42 +13,90 @@ services:
     ports:
       - "3307:3306"
 
-  php:
+  drupal:
     build:
       context: .
-      dockerfile: ./php-ubuntu/Dockerfile
-    container_name: my_drupal_ubuntu_php
-    restart: always
-    volumes:
-      - ./web:/var/www/web
-      - ./vendor:/var/www/vendor
-      - ./php.ini:/usr/local/etc/php/conf.d/99-custom.ini
-    # ports:
-    #  - "9003:9003"
-    depends_on:
-      - db
-
-  nginx:
-    image: nginx:latest
-    container_name: my_drupal_ubuntu_nginx
+      dockerfile: ./php-ubuntu/Dockerfile  # <--- your custom Dockerfile that includes PHP, nginx, Xdebug
+    container_name: my_drupal_ubuntu_app
     restart: always
     ports:
-      - "8088:80"
+      - "8088:80"      # HTTP for Drupal access
+      - "9003:9003"    # Xdebug port for VS Code
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./web:/var/www/web
+      - ./web:/var/www/web                  # Drupal project
+      - ./vendor:/var/www/vendor            # Shared vendor directory (if applicable)
+      - ./php.ini:/etc/php/8.2/fpm/conf.d/99-custom.ini
+      - ./config:/var/www/config
+    environment:
+      PHP_MEMORY_LIMIT: 256M
+      DRUPAL_DB_HOST: db
+      DRUPAL_DB_PORT: 3306
+      DRUPAL_DB_NAME: drupal10
+      DRUPAL_DB_USER: drupal10
+      DRUPAL_DB_PASSWORD: drupal10
+    command: /bin/bash -c "ln -sfn /var/www/web /var/www/html && exec supervisord -n"
     depends_on:
-      - php
       - db
-
-  ubuntu:
-    image: ubuntu:22.04
-    container_name: my_drupal_ubuntu_shell
-    restart: always
-    tty: true
-    stdin_open: true
-    volumes:
-      - ./web:/var/www/web
+    # dns:
+    #   - 140.20.254.10
+    #   - 140.20.254.11
+    #   - 140.20.254.12
+    #   - 140.20.254.13
 
 volumes:
   db_data:
+
+# services:
+#   db:
+#     image: mariadb:10.11
+#     container_name: my_drupal_ubuntu_db
+#     restart: always
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root
+#       MYSQL_DATABASE: drupal10
+#       MYSQL_USER: drupal10
+#       MYSQL_PASSWORD: drupal10
+#     volumes:
+#       - db_data:/var/lib/mysql
+#     ports:
+#       - "3307:3306"
+
+#   php:
+#     build:
+#       context: .
+#       dockerfile: ./php-ubuntu/Dockerfile
+#     container_name: my_drupal_ubuntu_php
+#     restart: always
+#     volumes:
+#       - ./web:/var/www/web
+#       - ./vendor:/var/www/vendor
+#       - ./php.ini:/usr/local/etc/php/conf.d/99-custom.ini
+#     # ports:
+#     #  - "9003:9003"
+#     depends_on:
+#       - db
+
+#   nginx:
+#     image: nginx:latest
+#     container_name: my_drupal_ubuntu_nginx
+#     restart: always
+#     ports:
+#       - "8088:80"
+#     volumes:
+#       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+#       - ./web:/var/www/web
+#     depends_on:
+#       - php
+#       - db
+
+#   ubuntu:
+#     image: ubuntu:22.04
+#     container_name: my_drupal_ubuntu_shell
+#     restart: always
+#     tty: true
+#     stdin_open: true
+#     volumes:
+#       - ./web:/var/www/web
+
+# volumes:
+#   db_data:
