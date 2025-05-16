@@ -16,15 +16,15 @@ services:
   drupal:
     build:
       context: .
-      dockerfile: ./php-ubuntu/Dockerfile  # <--- your custom Dockerfile that includes PHP, nginx, Xdebug
+      dockerfile: ./php-ubuntu/Dockerfile  # my custom Dockerfile that includes PHP, nginx, Xdebug
     container_name: my_drupal_ubuntu_app
     restart: always
     ports:
-      - "8088:80"      # HTTP for Drupal access
+      - "8088:80"      # HTTP for Drupal access at http://localhost:8088
       - "9003:9003"    # Xdebug port for VS Code
     volumes:
       - ./web:/var/www/web                  # Drupal project
-      - ./vendor:/var/www/vendor            # Shared vendor directory (if applicable)
+      - ./vendor:/var/www/vendor            # Shared vendor directory
       - ./php.ini:/etc/php/8.2/fpm/conf.d/99-custom.ini
       - ./config:/var/www/config
     environment:
