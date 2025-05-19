@@ -15,11 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     update-ca-certificates
 
 # Add trusted CA certs individually
-COPY certs/DoD_Root_CA_3.pem /usr/local/share/ca-certificates/
-COPY certs/DoD_Root_CA_4.pem /usr/local/share/ca-certificates/
-COPY certs/DoD_Root_CA_5.pem /usr/local/share/ca-certificates/
-COPY certs/DoD_Root_CA_6.pem /usr/local/share/ca-certificates/
-COPY certs/ecma-wcf-trusted.pem /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_3.crt /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_4.crt /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_5.crt /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_6.crt /usr/local/share/ca-certificates/
+COPY certs/ecma-wcf-trusted.crt /usr/local/share/ca-certificates/
 COPY certs/SSLcom-TLS-Root-2022-RSA.crt /usr/local/share/ca-certificates/
 COPY certs/SSLcom-TLS-Root-2022-ECC.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates
@@ -65,6 +65,10 @@ WORKDIR /var/www
 # Copy Drupal project
 COPY . /var/www
 
+RUN mkdir -p /var/www/web/sites/default/files && \
+    chown -R www-data:www-data /var/www/web/sites/default/files && \
+    chmod -R 755 /var/www/web/sites/default/files
+    
 # Copy configuration files last (to avoid overwrite)
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf

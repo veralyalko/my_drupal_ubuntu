@@ -42,17 +42,17 @@ services:
     #   - 140.20.254.11
     #   - 140.20.254.12
     #   - 140.20.254.13
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: my_drupal_phpmyadmin
-    restart: always
-    ports:
-      - "8081:80"  # phpMyAdmin at http://localhost:8081
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-    depends_on:
-      - db
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin
+  #   container_name: my_drupal_phpmyadmin
+  #   restart: always
+  #   ports:
+  #     - "8081:80"  # phpMyAdmin at http://localhost:8081
+  #   environment:
+  #     PMA_HOST: db
+  #     PMA_PORT: 3306
+  #   depends_on:
+  #     - db
 
 volumes:
   db_data:
