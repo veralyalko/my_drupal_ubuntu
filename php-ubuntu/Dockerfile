@@ -1,29 +1,39 @@
 FROM ubuntu:22.04
 
-# Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy custom SSL certificates before any HTTPS operations
-COPY certs/*.crt /usr/local/share/ca-certificates/
-COPY certs/*.pem /usr/local/share/ca-certificates/
-
-# Install base packages and update certificate store
+# Install base system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     wget \
-    gnupg2 \
+    gnupg \
     lsb-release \
     software-properties-common \
     unzip \
     apt-transport-https && \
     update-ca-certificates
 
-# Add PHP PPA repository
-RUN add-apt-repository ppa:ondrej/php -y
+# Add trusted CA certs individually
+COPY certs/DoD_Root_CA_3.pem /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_4.pem /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_5.pem /usr/local/share/ca-certificates/
+COPY certs/DoD_Root_CA_6.pem /usr/local/share/ca-certificates/
+COPY certs/ecma-wcf-trusted.pem /usr/local/share/ca-certificates/
+COPY certs/SSLcom-TLS-Root-2022-RSA.crt /usr/local/share/ca-certificates/
+COPY certs/SSLcom-TLS-Root-2022-ECC.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
 
-# Install PHP, Nginx, and related packages
-RUN apt-get update && apt-get install -y \
+# Optional: Verify certs
+RUN ls -l /usr/local/share/ca-certificates && cat /etc/ca-certificates.conf
+
+# Add PHP repository
+RUN apt-get update && apt-get install -y gnupg2 && \
+    add-apt-repository ppa:ondrej/php -y && \
+    apt-get update
+
+# Install PHP, Nginx, Supervisor and other dependencies
+RUN apt-get install -y \
     nginx \
     php8.2-fpm \
     php8.2-cli \
@@ -43,31 +53,29 @@ RUN apt-get update && apt-get install -y \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Ensure PHP-FPM is available at expected path
+# Ensure PHP-FPM is accessible via standard path
 RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
 
 # Create PHP socket directory
-RUN mkdir -p /run/php && chown www-data:www-data /run/php && chmod 755 /run/php
+RUN mkdir -p /run/php && chmod 755 /run/php && chown www-data:www-data /run/php
 
-# Set working directory for application
+# Set working directory
 WORKDIR /var/www
 
-# Copy service configuration files
+# Copy Drupal project
+COPY . /var/www
+
+# Copy configuration files last (to avoid overwrite)
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
 COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Add Composer binary from multistage build (assumes you are using `composer:latest` in docker-compose)
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Copy full Drupal project
-COPY . /var/www
-
-# Expose web server port
+# Expose HTTP
 EXPOSE 80
 
-# Start all services using Supervisor
+# Run Supervisor
 CMD ["/usr/bin/supervisord", "-n"]
+
 
 
 
