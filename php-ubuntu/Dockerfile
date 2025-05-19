@@ -1,9 +1,13 @@
 FROM ubuntu:22.04
 
-# Avoid interactive prompts
+# Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install base packages and update CA certs
+# Copy custom SSL certificates before any HTTPS operations
+COPY certs/*.crt /usr/local/share/ca-certificates/
+COPY certs/*.pem /usr/local/share/ca-certificates/
+
+# Install base packages and update certificate store
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
@@ -15,16 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https && \
     update-ca-certificates
 
-# Copy custom SSL certs
-COPY certs/*.crt /usr/local/share/ca-certificates/
-COPY certs/*.pem /usr/local/share/ca-certificates/
-
-RUN update-ca-certificates
-
-# Install PHP repo separately to avoid cert issues during HTTPS calls
+# Add PHP PPA repository
 RUN add-apt-repository ppa:ondrej/php -y
 
-# Install PHP, Nginx, and other packages
+# Install PHP, Nginx, and related packages
 RUN apt-get update && apt-get install -y \
     nginx \
     php8.2-fpm \
@@ -45,33 +43,31 @@ RUN apt-get update && apt-get install -y \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Ensure php-fpm is available at standard path
+# Ensure PHP-FPM is available at expected path
 RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
 
 # Create PHP socket directory
 RUN mkdir -p /run/php && chown www-data:www-data /run/php && chmod 755 /run/php
 
-# Set working directory
+# Set working directory for application
 WORKDIR /var/www
 
-# Copy configuration files
+# Copy service configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
 COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Add Composer from official image
+# Add Composer binary from multistage build (assumes you are using `composer:latest` in docker-compose)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy your Drupal project
+# Copy full Drupal project
 COPY . /var/www
 
-# Expose HTTP port
+# Expose web server port
 EXPOSE 80
 
-# Start services via Supervisor
+# Start all services using Supervisor
 CMD ["/usr/bin/supervisord", "-n"]
-
-
 
 
 
@@ -85,15 +81,24 @@ CMD ["/usr/bin/supervisord", "-n"]
 #     ca-certificates \
 #     curl \
 #     wget \
-#     gnupg \
+#     gnupg2 \
 #     lsb-release \
 #     software-properties-common \
-#     unzip && \
+#     unzip \
+#     apt-transport-https && \
 #     update-ca-certificates
 
-# # Enable PHP 8.2 from Ondrej PPA
-# RUN add-apt-repository ppa:ondrej/php -y && \
-#     apt-get update && apt-get install -y \
+# # Copy custom SSL certs
+# COPY certs/*.crt /usr/local/share/ca-certificates/
+# COPY certs/*.pem /usr/local/share/ca-certificates/
+
+# RUN update-ca-certificates
+
+# # Install PHP repo separately to avoid cert issues during HTTPS calls
+# RUN add-apt-repository ppa:ondrej/php -y
+
+# # Install PHP, Nginx, and other packages
+# RUN apt-get update && apt-get install -y \
 #     nginx \
 #     php8.2-fpm \
 #     php8.2-cli \
@@ -119,49 +124,30 @@ CMD ["/usr/bin/supervisord", "-n"]
 # # Create PHP socket directory
 # RUN mkdir -p /run/php && chown www-data:www-data /run/php && chmod 755 /run/php
 
+# # Set working directory
+# WORKDIR /var/www
 
+# # Copy configuration files
+# COPY nginx.conf /etc/nginx/nginx.conf
+# COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
+# COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-
-
-
-# # Copy Composer binary from official image
+# # Add Composer from official image
 # COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # # Copy your Drupal project
 # COPY . /var/www
 
-# (Optional) Ensure config/sync exists and is writable
-# RUN mkdir -p /var/www/config/sync && \
-#     chown -R www-data:www-data /var/www/config && \
-#     chmod -R 755 /var/www/config
+# # Expose HTTP port
+# EXPOSE 80
 
-# # Set Composer environment
-# ENV COMPOSER_ALLOW_SUPERUSER=1 \
-#     COMPOSER_DISABLE_XDEBUG_WARN=1 \
-#     COMPOSER_SECURE_HTTP=false
+# # Start services via Supervisor
+# CMD ["/usr/bin/supervisord", "-n"]
 
-# Install Composer dependencies (optional – uncomment if needed)
-# RUN composer install --no-interaction --prefer-dist
 
-# Set working directory
-WORKDIR /var/www
 
-# Copy config files
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
-COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Add Composer from official image
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy your Drupal project
-COPY . /var/www
-
-# Expose HTTP port
-EXPOSE 80
-
-# Start services via Supervisor
-CMD ["/usr/bin/supervisord", "-n"]
 
 # Version php:8.3-fpm with xdebug using pecl
 # FROM php:8.3-fpm
@@ -213,6 +199,8 @@ CMD ["/usr/bin/supervisord", "-n"]
 
 # # Now copy the rest of your Drupal project
 # COPY . /var/www
+
+
 
 
 # Version php:8.3-fpm with xdebug using curl
