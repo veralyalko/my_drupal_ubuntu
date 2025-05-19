@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy custom SSL certs
 COPY certs/*.crt /usr/local/share/ca-certificates/
+COPY certs/*.pem /usr/local/share/ca-certificates/
+
 RUN update-ca-certificates
 
 # Install PHP repo separately to avoid cert issues during HTTPS calls
