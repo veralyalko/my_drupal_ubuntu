@@ -53,6 +53,11 @@ RUN apt-get install -y \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php && \
+    mv composer.phar /usr/local/bin/composer && \
+    chmod +x /usr/local/bin/composer   
+
 # Ensure PHP-FPM is accessible via standard path
 RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
 
@@ -68,7 +73,7 @@ COPY . /var/www
 RUN mkdir -p /var/www/web/sites/default/files && \
     chown -R www-data:www-data /var/www/web/sites/default/files && \
     chmod -R 755 /var/www/web/sites/default/files
-    
+
 # Copy configuration files last (to avoid overwrite)
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
