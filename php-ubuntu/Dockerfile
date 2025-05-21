@@ -1,7 +1,7 @@
-# Stage 1: Get Composer binary
+# Step 1: Get Composer binary
 FROM composer:latest AS composer
 
-# Stage 2: Main Drupal environment
+# Step 2: Main Drupal environment
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -29,9 +29,10 @@ COPY certs/DoD_Root_CA_6.crt /usr/local/share/ca-certificates/
 COPY certs/ecma-wcf-trusted.crt /usr/local/share/ca-certificates/
 COPY certs/SSLcom-TLS-Root-2022-RSA.crt /usr/local/share/ca-certificates/
 COPY certs/SSLcom-TLS-Root-2022-ECC.crt /usr/local/share/ca-certificates/
+COPY certs/MenloSecurityRootH1.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
-# Optional: Verify certs
+# Verify certs
 RUN ls -l /usr/local/share/ca-certificates && cat /etc/ca-certificates.conf
 
 # Add PHP repository
@@ -39,7 +40,7 @@ RUN apt-get update && apt-get install -y gnupg2 && \
     add-apt-repository ppa:ondrej/php -y && \
     apt-get update
 
-# Install PHP, Nginx, Supervisor and other dependencies
+# Install PHP, Nginx, Supervisor, OpenSSL and other dependencies
 RUN apt-get install -y \
     nginx \
     php8.2-fpm \
@@ -56,14 +57,15 @@ RUN apt-get install -y \
     php8.2-intl \
     php8.2-xdebug \
     supervisor \
+    openssl \
     git \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ✅ Use Composer from Stage 1
+# Use Composer from Step 1
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
-# Ensure PHP-FPM is accessible via standard path
+# Make sure PHP-FPM is accessible via standard path
 RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
 
 # Create PHP socket directory
@@ -79,7 +81,7 @@ RUN mkdir -p /var/www/web/sites/default/files && \
     chown -R www-data:www-data /var/www/web/sites/default/files && \
     chmod -R 755 /var/www/web/sites/default/files
 
-# Copy configuration files last (to avoid overwrite)
+# Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
 COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
