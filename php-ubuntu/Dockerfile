@@ -15,13 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsb-release \
     software-properties-common \
     unzip \
-    apt-transport-https && \
-    update-ca-certificates
+    apt-transport-https \
+    iputils-ping \
+    openssl \
+    git
 
-# Install ping utility
-RUN apt-get update && apt-get install -y iputils-ping
-
-# Add trusted CA certs individually
+# Copy trusted root certificates
 COPY certs/DoD_Root_CA_3.crt /usr/local/share/ca-certificates/
 COPY certs/DoD_Root_CA_4.crt /usr/local/share/ca-certificates/
 COPY certs/DoD_Root_CA_5.crt /usr/local/share/ca-certificates/
@@ -29,18 +28,23 @@ COPY certs/DoD_Root_CA_6.crt /usr/local/share/ca-certificates/
 COPY certs/ecma-wcf-trusted.crt /usr/local/share/ca-certificates/
 COPY certs/SSLcom-TLS-Root-2022-RSA.crt /usr/local/share/ca-certificates/
 COPY certs/SSLcom-TLS-Root-2022-ECC.crt /usr/local/share/ca-certificates/
-COPY certs/MenloSecurityRootH1.crt /usr/local/share/ca-certificates/
+
+# Update CA trust store (for standard certs)
 RUN update-ca-certificates
 
-# Verify certs
-RUN ls -l /usr/local/share/ca-certificates && cat /etc/ca-certificates.conf
+# Copy Menlo cert directly to OpenSSL cert store and manually trust it
+COPY certs/MenloSecurityRootH1.crt /etc/ssl/certs/MenloSecurityRootH1.pem
+
+# Rehash and append Menlo cert to system trust bundle
+RUN c_rehash /etc/ssl/certs && \
+    cat /etc/ssl/certs/MenloSecurityRootH1.pem >> /etc/ssl/certs/ca-certificates.crt
 
 # Add PHP repository
 RUN apt-get update && apt-get install -y gnupg2 && \
     add-apt-repository ppa:ondrej/php -y && \
     apt-get update
 
-# Install PHP, Nginx, OpenSSL, Supervisor and other dependencies
+# Install PHP, Nginx, Supervisor and dependencies
 RUN apt-get install -y \
     nginx \
     php8.2-fpm \
@@ -57,8 +61,6 @@ RUN apt-get install -y \
     php8.2-intl \
     php8.2-xdebug \
     supervisor \
-    openssl \ 
-    git \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -77,6 +79,7 @@ WORKDIR /var/www
 # Copy Drupal project
 COPY . /var/www
 
+# Set permissions
 RUN mkdir -p /var/www/web/sites/default/files && \
     chown -R www-data:www-data /var/www/web/sites/default/files && \
     chmod -R 755 /var/www/web/sites/default/files
@@ -91,7 +94,6 @@ EXPOSE 80
 
 # Run Supervisor
 CMD ["/usr/bin/supervisord", "-n"]
-
 
 
 # WORKING DOCKER SETUP
