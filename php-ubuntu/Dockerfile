@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y gnupg2 && \
     add-apt-repository ppa:ondrej/php -y && \
     apt-get update
 
-# Install PHP, Nginx, Supervisor, OpenSSL and other dependencies
+# Install PHP, Nginx, OpenSSL, Supervisor and other dependencies
 RUN apt-get install -y \
     nginx \
     php8.2-fpm \
@@ -57,7 +57,7 @@ RUN apt-get install -y \
     php8.2-intl \
     php8.2-xdebug \
     supervisor \
-    openssl \
+    openssl \ 
     git \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
