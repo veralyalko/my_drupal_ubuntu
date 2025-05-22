@@ -1,5 +1,9 @@
 {
     "phpcs.standard": "Drupal",
     "phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
-    "editor.formatOnSave": true
-  }
+    "editor.formatOnSave": true,
+    "terminal.integrated.shell.osx": "/bin/zsh",
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.fontFamily": "MesloLGS NF",
+    "editor.guides.bracketPairs": true
+}

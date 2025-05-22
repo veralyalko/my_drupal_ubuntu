@@ -24,7 +24,7 @@ services:
       # - "9003:9003"    # Xdebug port for VS Code
     volumes:
       - ./web:/var/www/web                  # Drupal project
-      - ./vendor:/var/www/vendor            # Shared vendor directory
+      # - ./vendor:/var/www/vendor            # Shared vendor directory
       - ./php.ini:/etc/php/8.2/fpm/conf.d/99-custom.ini
       - ./config:/var/www/config
     environment:

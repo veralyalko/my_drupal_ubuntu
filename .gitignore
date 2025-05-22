@@ -4,6 +4,12 @@
 # /web/core/
 #/web/libraries/
 
+/core/
+/vendor/
+/web/modules/contrib/
+/web/themes/contrib/
+/web/profiles/contrib/
+
 /web/libraries/*
 # !/web/libraries/slick
 # !/web/libraries/mousewheel
