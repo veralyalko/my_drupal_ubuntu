@@ -4,7 +4,7 @@
 # /web/core/
 #/web/libraries/
 
-/core/
+/web/core/
 /vendor/
 /web/modules/contrib/
 /web/themes/contrib/
