@@ -16,15 +16,14 @@ services:
   drupal:
     build:
       context: .
-      dockerfile: ./php-ubuntu/Dockerfile  # my custom Dockerfile that includes PHP, nginx, Xdebug
+      dockerfile: ./php-ubuntu/Dockerfile
     container_name: my_drupal_ubuntu_app
     restart: always
     ports:
-      - "8088:80"      # HTTP for Drupal access at http://localhost:8088
-      # - "9003:9003"    # Xdebug port for VS Code
+      - "8088:80"
     volumes:
-      - ./web:/var/www/web                  # Drupal project
-      # - ./vendor:/var/www/vendor            # Shared vendor directory
+      - ./web:/var/www/web
+      - ./vendor:/var/www/vendor
       - ./php.ini:/etc/php/8.2/fpm/conf.d/99-custom.ini
       - ./config:/var/www/config
     environment:
@@ -34,9 +33,17 @@ services:
       DRUPAL_DB_NAME: drupal10
       DRUPAL_DB_USER: drupal10
       DRUPAL_DB_PASSWORD: drupal10
-    command: /bin/bash -c "ln -sfn /var/www/web /var/www/html && exec supervisord -n"
+    command: >
+      bash -c "mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core &&
+               chown -R www-data:www-data /var/www/web/sites/default/files /var/www/vendor /var/www/core &&
+               chmod -R u=rwX,g=rX,o=rX /var/www/web/sites/default/files /var/www/vendor /var/www/core &&
+               chmod 644 /var/www/web/sites/default/settings.php || true &&
+               ln -sfn /var/www/web /var/www/html &&
+               exec supervisord -n"
+
     depends_on:
       - db
+
     # dns:
     #   - 140.20.254.10
     #   - 140.20.254.11

@@ -89,6 +89,18 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
 COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# # Set permissions
+# RUN mkdir -p /var/www/web/sites/default/files && \
+#     mkdir -p /var/www/vendor /var/www/core && \
+#     chown -R www-data:www-data /var/www && \
+#     chmod -R 755 /var/www
+
+# Set ownership and permissions for writable directories
+RUN mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core && \
+    chown -R www-data:www-data /var/www/web/sites/default/files /var/www/vendor /var/www/core && \
+    chmod -R u=rwX,g=rX,o=rX /var/www/web/sites/default/files /var/www/vendor /var/www/core && \
+    chmod 644 /var/www/web/sites/default/settings.php || true
+
 # Expose HTTP
 EXPOSE 80
 
