@@ -37,7 +37,6 @@ services:
       bash -c "mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core &&
                chown -R www-data:www-data /var/www/web/sites/default/files /var/www/vendor /var/www/core &&
                chmod -R u=rwX,g=rX,o=rX /var/www/web/sites/default/files /var/www/vendor /var/www/core &&
-               chmod 644 /var/www/web/sites/default/settings.php || true &&
                ln -sfn /var/www/web /var/www/html &&
                exec supervisord -n"
 
