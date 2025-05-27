@@ -13,19 +13,35 @@
 //   'driver_options' => [],
 // ];
 
+// mysql
+// $databases['default']['default'] = [
+//   'driver' => 'mysql',
+//   'database' => 'drupal10',
+//   'username' => 'drupal10',
+//   'password' => 'drupal10',
+//   // 'host' => (PHP_SAPI === 'cli' && getenv('IS_DOCKER') !== '1') ? '127.0.0.1' : 'my_drupal_ubuntu_db',
+//   'host' => 'my_drupal_ubuntu_db',
+//   'port' => '3306',
+//   'prefix' => '',
+//   'collation' => 'utf8mb4_general_ci',
+//   'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+//   'driver_options' => [],
+// ];
+
+// postgres
 $databases['default']['default'] = [
-  'driver' => 'mysql',
-  'database' => 'drupal10',
-  'username' => 'drupal10',
-  'password' => 'drupal10',
+  'driver' => 'pgsql',
+  'database' => 'drupal10',      
+  'username' => 'drupal10',     
+  'password' => 'drupal10',       
   // 'host' => (PHP_SAPI === 'cli' && getenv('IS_DOCKER') !== '1') ? '127.0.0.1' : 'my_drupal_ubuntu_db',
-  'host' => 'my_drupal_ubuntu_db',
-  'port' => '3306',
+   'host' => 'db',
+  'port' => '5432',
   'prefix' => '',
-  'collation' => 'utf8mb4_general_ci',
-  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+  'namespace' => 'Drupal\\Core\\Database\\Driver\\pgsql',
   'driver_options' => [],
 ];
+
 
 $settings['file_public_path'] = 'sites/default/files';
 // $config['system.performance']['css']['preprocess'] = TRUE;
