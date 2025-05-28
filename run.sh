@@ -94,7 +94,7 @@ case "$COMMAND" in
     echo "Cleaning up unused containers, images, and volumes..."
     docker system prune -a --volumes -f
     ;;
-  help|*)
+  help)
     echo "Available commands:"
     echo "  ./run.sh up-d             - Start containers in background"
     echo "  ./run.sh up               - Start containers with output"
