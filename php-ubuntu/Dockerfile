@@ -47,19 +47,19 @@ RUN apt-get update && apt-get install -y gnupg2 && \
 # Install PHP, Nginx, Supervisor and dependencies
 RUN apt-get install -y \
     nginx \
-    php8.2-fpm \
-    php8.2-cli \
-    php8.2-mysql \
-    php8.2-mbstring \
-    php8.2-xml \
-    php8.2-pgsql \
-    php8.2-curl \
-    php8.2-gd \
-    php8.2-zip \
-    php8.2-bcmath \
-    php8.2-soap \
-    php8.2-intl \
-    php8.2-xdebug \
+    php8.3-fpm \
+    php8.3-cli \
+    php8.3-mysql \
+    php8.3-mbstring \
+    php8.3-xml \
+    php8.3-pgsql \
+    php8.3-curl \
+    php8.3-gd \
+    php8.3-zip \
+    php8.3-bcmath \
+    php8.3-soap \
+    php8.3-intl \
+    php8.3-xdebug \
     supervisor \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -68,7 +68,7 @@ RUN apt-get install -y \
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 # Make sure PHP-FPM is accessible via standard path
-RUN ln -sf /usr/sbin/php-fpm8.2 /usr/sbin/php-fpm
+RUN ln -sf /usr/sbin/php-fpm8.3 /usr/sbin/php-fpm
 
 # Create PHP socket directory
 RUN mkdir -p /run/php && chmod 755 /run/php && chown www-data:www-data /run/php
@@ -90,7 +90,7 @@ RUN mkdir -p /var/www/web/sites/default/files && \
 
 # Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY www.conf /etc/php/8.2/fpm/pool.d/www.conf
+COPY www.conf /etc/php/8.3/fpm/pool.d/www.conf
 COPY php-ubuntu/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Set ownership and permissions for writable directories
@@ -103,4 +103,4 @@ RUN mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core && \
 EXPOSE 80
 
 # Run init script on container start
-CMD ["/usr/local/bin/init.sh"]
+CMD ["/usr/local/bin/init.sh"]q
