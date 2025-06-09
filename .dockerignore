@@ -1,0 +1,55 @@
+# Ignore Git metadata
+.git
+.gitignore
+
+# Ignore OS/Editor-specific files
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+.idea
+.vscode
+
+# Ignore Composer cache & artifacts
+composer.lock
+vendor/
+
+# Ignore node/npm/Yarn files
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Ignore Docker artifacts
+.dockerignore
+docker-compose.override.yml
+
+# Ignore settings files you may override locally
+web/sites/default/settings.local.php
+web/sites/default/services.local.yml
+
+# Ignore files that shouldn’t be in the image
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Ignore database exports/backups
+db.sql
+db/
+database/
+*.sql
+*.sqlite
+
+# Ignore custom uploads/files
+web/sites/default/files/*
+!web/sites/default/files/.gitkeep
+
+# Ignore test coverage and build artifacts
+coverage/
+phpunit.xml
+phpunit.result.cache
+build/

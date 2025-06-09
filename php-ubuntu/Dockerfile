@@ -103,4 +103,4 @@ RUN mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core && \
 EXPOSE 80
 
 # Run init script on container start
-CMD ["/usr/local/bin/init.sh"]q
+CMD ["/usr/local/bin/init.sh"]
