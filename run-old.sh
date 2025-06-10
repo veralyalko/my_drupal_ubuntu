@@ -71,31 +71,7 @@ case "$COMMAND" in
     read -p "Enter directory to save the backup (e.g., ./db_backups): " BACKUP_DIR
 
     if [ -z "$BACKUP_DIR" ]; then
-      echo "You must provide a backup directory."
-      exit 1
-    fi
-
-    mkdir -p "$BACKUP_DIR"
-    TIMESTAMP=$(date +"%Y-%m-%dT%H-%M-%S")
-    FILENAME="backup-${TIMESTAMP}.sql.gz"
-
-    echo "Exporting full PostgreSQL database (with DROP and CREATE statements) to $BACKUP_DIR/$FILENAME..."
-
-    docker-compose exec db pg_dump \
-      -U drupal10 \
-      -d drupal10 \
-      --clean \
-      --if-exists \
-      --format=plain \
-    | gzip > "$BACKUP_DIR/$FILENAME"
-
-    echo "Database export complete: $BACKUP_DIR/$FILENAME"
-    ;;
-  export-db-clean)
-    read -p "Enter directory to save the backup (e.g., ./db_backups): " BACKUP_DIR
-
-    if [ -z "$BACKUP_DIR" ]; then
-      echo "You must provide a backup directory."
+      echo "❌ You must provide a backup directory."
       exit 1
     fi
 
@@ -116,18 +92,18 @@ case "$COMMAND" in
       --format=plain \
     | gzip > "$BACKUP_DIR/$FILENAME"
 
-    echo "Database export complete: $BACKUP_DIR/$FILENAME"
+    echo "✅ Database export complete: $BACKUP_DIR/$FILENAME"
     ;;
   import-db)
     read -p "Enter full path to SQL file (e.g., ./db/backup.sql or ./db/backup.sql.gz): " SQL_PATH
 
     if [ -z "$SQL_PATH" ]; then
-      echo "You must provide a path to the SQL file."
+      echo "❌ You must provide a path to the SQL file."
       exit 1
     fi
 
     if [ ! -f "$SQL_PATH" ]; then
-      echo "File not found: $SQL_PATH"
+      echo "❌ File not found: $SQL_PATH"
       exit 1
     fi
 
@@ -139,7 +115,7 @@ case "$COMMAND" in
       cat "$SQL_PATH" | docker-compose exec -T db psql -U drupal10 -d drupal10
     fi
 
-    echo "Database import complete."
+    echo "✅ Database import complete."
     ;;
   status)
     echo "Showing container status..."

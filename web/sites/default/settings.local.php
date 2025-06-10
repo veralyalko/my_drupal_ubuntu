@@ -44,6 +44,7 @@ $databases['default']['default'] = [
 
 
 $settings['file_public_path'] = 'sites/default/files';
+$settings['file_private_path'] = DRUPAL_ROOT . '/../private';
 // $config['system.performance']['css']['preprocess'] = TRUE;
 // $config['system.performance']['js']['preprocess'] = TRUE;
 

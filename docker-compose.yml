@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgres:16
     container_name: my_drupal_ubuntu_db
     restart: always
     environment:
@@ -24,6 +24,7 @@ services:
       - ./vendor:/var/www/vendor
       - ./php.ini:/etc/php/8.2/fpm/conf.d/99-custom.ini
       - ./config:/var/www/config
+      - ./private:/var/www/private
     environment:
       PHP_MEMORY_LIMIT: 256M
       DRUPAL_DB_HOST: db

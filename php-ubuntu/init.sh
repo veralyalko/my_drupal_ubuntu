@@ -4,9 +4,11 @@ set -e
 echo "init.sh WAS executed!!!!!"
 
 # Setup writable directories and symlink
-mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core
-chown -R www-data:www-data /var/www/web/sites/default/files /var/www/vendor /var/www/core
+mkdir -p /var/www/web/sites/default/files /var/www/vendor /var/www/core /var/www/private
+chown -R www-data:www-data /var/www/web/sites/default/files /var/www/vendor /var/www/core /var/www/private
 chmod -R u=rwX,g=rX,o=rX /var/www/web/sites/default/files /var/www/vendor /var/www/core
+chmod -R 700 /var/www/private
+
 ln -sfn /var/www/web /var/www/html
 
 # Always run composer install
@@ -27,4 +29,3 @@ fi
 # Start Supervisor
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -n
-

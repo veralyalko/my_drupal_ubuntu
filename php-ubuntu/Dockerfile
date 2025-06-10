@@ -44,6 +44,11 @@ RUN apt-get update && apt-get install -y gnupg2 && \
     add-apt-repository ppa:ondrej/php -y && \
     apt-get update
 
+# Add PostgreSQL APT repo for version 16
+RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pg.gpg && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update
+
 # Install PHP, Nginx, Supervisor and dependencies
 RUN apt-get install -y \
     nginx \
@@ -60,6 +65,7 @@ RUN apt-get install -y \
     php8.3-soap \
     php8.3-intl \
     php8.3-xdebug \
+    postgresql-client-16 \
     supervisor \
     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
