@@ -13,11 +13,9 @@ services:
   appserver:
     build_as_root:
       - apt-get update && apt-get install -y wget curl ca-certificates gnupg lsb-release software-properties-common
-      # Add PostgreSQL official repo securely
       - echo "deb [signed-by=/usr/share/keyrings/postgres.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
       - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /usr/share/keyrings/postgres.gpg
       - apt-get update && apt-get install -y postgresql-client-16
-      # Your existing certificate setup
       - mkdir -p /usr/local/share/ca-certificates/custom
       - cp /app/certs/*.crt /usr/local/share/ca-certificates/custom/
       - update-ca-certificates
@@ -46,11 +44,11 @@ services:
     portforward: true
     overrides:
       environment:
-        POSTGRES_USER: drupal10
-        POSTGRES_PASSWORD: drupal10
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
         POSTGRES_DB: drupal10
       healthcheck:
-        test: ["CMD-SHELL", "exit 0"]
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
 
   adminer:
     type: compose
@@ -137,7 +135,7 @@ tooling:
         TIMESTAMP=$(date +"%Y-%m-%dT%H-%M-%S");
         FILENAME="backup-${TIMESTAMP}.sql.gz";
         echo "Exporting full PostgreSQL database to $BACKUP_DIR/$FILENAME...";
-        PGPASSWORD=drupal10 pg_dump -U drupal10 -h database -d drupal10 --no-owner --no-acl --encoding=UTF8 --clean --if-exists --format=plain | gzip > "$BACKUP_DIR/$FILENAME";
+        PGPASSWORD=postgres pg_dump -U postgres -h database -d drupal10 --no-owner --no-acl --encoding=UTF8 --clean --if-exists --format=plain | gzip > "$BACKUP_DIR/$FILENAME";
         echo "Export complete: $BACKUP_DIR/$FILENAME"
       '
 
@@ -149,6 +147,57 @@ tooling:
         if [ -z "$SQL_PATH" ]; then echo "You must provide a path."; exit 1; fi;
         if [ ! -f "$SQL_PATH" ]; then echo "File not found: $SQL_PATH"; exit 1; fi;
         echo "Importing $SQL_PATH into PostgreSQL...";
-        if [[ "$SQL_PATH" == *.gz ]]; then gunzip -c "$SQL_PATH" | PGPASSWORD=drupal10 psql -U drupal10 -h database -d drupal10; else cat "$SQL_PATH" | PGPASSWORD=drupal10 psql -U drupal10 -h database -d drupal10; fi;
+        if [[ "$SQL_PATH" == *.gz ]]; then gunzip -c "$SQL_PATH" | PGPASSWORD=postgres psql -U postgres -h database -d drupal10; else cat "$SQL_PATH" | PGPASSWORD=postgres psql -U postgres -h database -d drupal10; fi;
         echo "Import complete."
+      '
+  export-roles:
+    service: appserver
+    cmd: >
+      bash -c '
+        BACKUP_DIR="/app";
+        TIMESTAMP=$(date +"%Y-%m-%dT%H-%M-%S");
+        ROLE_FILE="roles-${TIMESTAMP}.sql";
+        echo "Exporting roles to $BACKUP_DIR/$ROLE_FILE...";
+        PGPASSWORD=postgres pg_dumpall -U postgres -h database --roles-only > "$BACKUP_DIR/$ROLE_FILE";
+        echo "Role export complete: $BACKUP_DIR/$ROLE_FILE"
+      '
+
+  import-roles:
+    service: appserver
+    cmd: >
+      bash -c '
+        read -p "Enter full path to ROLES SQL file (e.g., ./db/roles.sql): " ROLES_PATH;
+        if [ -z "$ROLES_PATH" ]; then echo "You must provide a path."; exit 1; fi;
+        if [ ! -f "$ROLES_PATH" ]; then echo "File not found: $ROLES_PATH"; exit 1; fi;
+        echo "Importing roles from $ROLES_PATH...";
+        grep -v "CREATE ROLE postgres" "$ROLES_PATH" | PGPASSWORD=postgres psql -U postgres -h database;
+        echo "Roles import complete."
+      '
+
+          echo "Roles import complete."
+      ' 
+
+  export-full-db:
+    service: appserver
+    cmd: >
+      bash -c '
+        BACKUP_DIR="/app";
+        TIMESTAMP=$(date +"%Y-%m-%dT%H-%M-%S");
+        FILENAME="full-backup-${TIMESTAMP}.sql.gz";
+        echo "Exporting full PostgreSQL roles + all databases to $BACKUP_DIR/$FILENAME...";
+        PGPASSWORD=postgres pg_dumpall -U postgres -h database --no-role-passwords | gzip > "$BACKUP_DIR/$FILENAME";
+        echo "Full export complete: $BACKUP_DIR/$FILENAME"
+      '
+
+  import-full-db:
+    service: appserver
+    cmd: >
+      bash -c '
+        read -p "Enter full path to FULL SQL file (e.g., ./db/full.sql or ./db/full.sql.gz): " SQL_PATH;
+        if [ -z "$SQL_PATH" ]; then echo "You must provide a path."; exit 1; fi;
+        if [ ! -f "$SQL_PATH" ]; then echo "File not found: $SQL_PATH"; exit 1; fi;
+        echo "Importing full PostgreSQL dump (roles + databases)...";
+        if [[ "$SQL_PATH" == *.gz ]]; then gunzip -c "$SQL_PATH" | PGPASSWORD=postgres psql -U postgres -h database;
+        else cat "$SQL_PATH" | PGPASSWORD=postgres psql -U postgres -h database; fi;
+        echo "Full import complete."
       '
