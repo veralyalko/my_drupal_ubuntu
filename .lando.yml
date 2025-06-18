@@ -8,17 +8,23 @@ config:
   database: postgres:16
   config:
     php: ./php.ini
+
 services:
   appserver:
     build_as_root:
-      - apt-get update && apt-get install -y ca-certificates curl gnupg lsb-release software-properties-common
-      - apt-get install -y postgresql-client
+      - apt-get update && apt-get install -y wget curl ca-certificates gnupg lsb-release software-properties-common
+      # Add PostgreSQL official repo securely
+      - echo "deb [signed-by=/usr/share/keyrings/postgres.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+      - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /usr/share/keyrings/postgres.gpg
+      - apt-get update && apt-get install -y postgresql-client-16
+      # Your existing certificate setup
       - mkdir -p /usr/local/share/ca-certificates/custom
       - cp /app/certs/*.crt /usr/local/share/ca-certificates/custom/
       - update-ca-certificates
       - cp /app/certs/MenloSecurityRootH1.crt /etc/ssl/certs/MenloSecurityRootH1.pem
       - c_rehash /etc/ssl/certs
       - cat /etc/ssl/certs/MenloSecurityRootH1.pem >> /etc/ssl/certs/ca-certificates.crt
+
     overrides:
       environment:
         PHP_MEMORY_LIMIT: "512M"
@@ -26,9 +32,6 @@ services:
         XDEBUG_START_WITH_REQUEST: yes
         XDEBUG_CLIENT_HOST: host.docker.internal
         XDEBUG_CLIENT_PORT: 9003
-    # mounts:
-    #   - ./php.ini:/etc/php/8.3/fpm/conf.d/99-custom.ini
-    #   - ./php.ini:/etc/php/8.3/cli/conf.d/99-custom.ini
     ssl: true
     xdebug: true
     composer_version: 2.8.8
@@ -53,8 +56,10 @@ services:
     type: compose
     services:
       image: dehy/adminer
+      platform: linux/amd64
       command: /bin/s6-svscan /etc/services.d
     portforward: true
+
   pgadmin:
     type: compose
     app_mount: false
@@ -77,15 +82,9 @@ services:
     hogfrom:
       - appserver
     portforward: true
-  # node:
-  #   type: node:20
-  #   globals:
-  #     gulp-cli: latest
-  #   overrides:
-  #     ports:
-  #       - '31632:31632'
-  #   ssl: true
-  #   sslExpose: false
+    overrides:
+      platform: linux/amd64
+
 proxy:
   adminer:
     - adminer.wcmt.lndo.site
@@ -101,23 +100,11 @@ tooling:
   drush:
     service: appserver
     cmd: ./vendor/bin/drush
+
   phpunit:
     service: appserver
     cmd: ./vendor/bin/phpunit
-  # node:
-  #   service: node
-  # npm:
-  #   service: node
-  # npx:
-  #   service: node
-  # gulp:
-  #   service: node
-  #   dir: '/app/web/themes/custom/YOUR_THEME'
-  #   cmd: gulp watch
-  # gulp-compile:
-  #   service: node
-  #   dir: '/app/web/themes/custom/YOUR_THEME'
-  #   cmd: gulp compile
+
   xoff:
     cmd: |
       sed -i 's/^zend_extension=xdebug.so/;zend_extension=xdebug.so/' /app/php.ini && kill -USR2 1
@@ -141,3 +128,27 @@ tooling:
       - drush updb
       - drush cim -y
       - drush cr
+
+  export-db:
+    service: appserver
+    cmd: >
+      bash -c '
+        BACKUP_DIR="/app";
+        TIMESTAMP=$(date +"%Y-%m-%dT%H-%M-%S");
+        FILENAME="backup-${TIMESTAMP}.sql.gz";
+        echo "Exporting full PostgreSQL database to $BACKUP_DIR/$FILENAME...";
+        PGPASSWORD=drupal10 pg_dump -U drupal10 -h database -d drupal10 --no-owner --no-acl --encoding=UTF8 --clean --if-exists --format=plain | gzip > "$BACKUP_DIR/$FILENAME";
+        echo "Export complete: $BACKUP_DIR/$FILENAME"
+      '
+
+  import-db:
+    service: appserver
+    cmd: >
+      bash -c '
+        read -p "Enter full path to SQL file (e.g., ./db/backup.sql or ./db/backup.sql.gz): " SQL_PATH;
+        if [ -z "$SQL_PATH" ]; then echo "You must provide a path."; exit 1; fi;
+        if [ ! -f "$SQL_PATH" ]; then echo "File not found: $SQL_PATH"; exit 1; fi;
+        echo "Importing $SQL_PATH into PostgreSQL...";
+        if [[ "$SQL_PATH" == *.gz ]]; then gunzip -c "$SQL_PATH" | PGPASSWORD=drupal10 psql -U drupal10 -h database -d drupal10; else cat "$SQL_PATH" | PGPASSWORD=drupal10 psql -U drupal10 -h database -d drupal10; fi;
+        echo "Import complete."
+      '
