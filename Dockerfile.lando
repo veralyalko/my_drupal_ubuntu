@@ -1,0 +1,10 @@
+FROM lando/php:8.3
+
+# Copy and convert cert
+COPY certs/MenloSecurityRootH1.crt /tmp/MenloSecurityRootH1.crt
+
+# Convert and install cert
+RUN openssl x509 -in /tmp/MenloSecurityRootH1.crt -out /usr/local/share/ca-certificates/MenloSecurityRootH1.pem && \
+    update-ca-certificates && \
+    c_rehash
+

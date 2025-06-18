@@ -1,3 +1,4 @@
+//lando setup
 {
   "version": "0.2.0",
   "configurations": [
@@ -7,9 +8,24 @@
       "request": "launch",
       "port": 9003,
       "pathMappings": {
-        "/var/www/web": "${workspaceFolder}/web",
-        "/var/www": "${workspaceFolder}"
+        "/app": "${workspaceFolder}"
       }
     }
   ]
 }
+// docker setup
+// {
+//   "version": "0.2.0",
+//   "configurations": [
+//     {
+//       "name": "Listen for Xdebug",
+//       "type": "php",
+//       "request": "launch",
+//       "port": 9003,
+//       "pathMappings": {
+//         "/var/www/web": "${workspaceFolder}/web",
+//         "/var/www": "${workspaceFolder}"
+//       }
+//     }
+//   ]
+// }

@@ -35,7 +35,7 @@ $databases['default']['default'] = [
   'username' => 'drupal10',     
   'password' => 'drupal10',       
   // 'host' => (PHP_SAPI === 'cli' && getenv('IS_DOCKER') !== '1') ? '127.0.0.1' : 'my_drupal_ubuntu_db',
-   'host' => 'db',
+   'host' => 'database',
   'port' => '5432',
   'prefix' => '',
   'namespace' => 'Drupal\\Core\\Database\\Driver\\pgsql',

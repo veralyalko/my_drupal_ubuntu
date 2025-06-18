@@ -1,0 +1,124 @@
+name: wcmt
+recipe: drupal10
+
+config:
+  webroot: web
+  php: "8.3"
+  via: nginx
+  database: postgres:16
+  config:
+    php: ./php.ini
+services:
+  appserver:
+    build_as_root:
+      - apt-get update && apt-get install -y ca-certificates curl gnupg lsb-release software-properties-common
+      - apt-get install -y postgresql-client
+      - mkdir -p /usr/local/share/ca-certificates/custom
+      - cp /app/certs/*.crt /usr/local/share/ca-certificates/custom/
+      - update-ca-certificates
+      - cp /app/certs/MenloSecurityRootH1.crt /etc/ssl/certs/MenloSecurityRootH1.pem
+      - c_rehash /etc/ssl/certs
+      - cat /etc/ssl/certs/MenloSecurityRootH1.pem >> /etc/ssl/certs/ca-certificates.crt
+    overrides:
+      environment:
+        PHP_MEMORY_LIMIT: "512M"
+        XDEBUG_MODE: debug
+        XDEBUG_START_WITH_REQUEST: yes
+        XDEBUG_CLIENT_HOST: host.docker.internal
+        XDEBUG_CLIENT_PORT: 9003
+    # mounts:
+    #   - ./php.ini:/etc/php/8.3/fpm/conf.d/99-custom.ini
+    #   - ./php.ini:/etc/php/8.3/cli/conf.d/99-custom.ini
+    ssl: true
+    xdebug: true
+    composer_version: 2.8.8
+    tooling:
+      init:
+        service: appserver
+        description: Run custom init script
+        cmd: /app/php-ubuntu/init.sh
+
+  database:
+    type: postgres:16
+    portforward: true
+    overrides:
+      environment:
+        POSTGRES_USER: drupal10
+        POSTGRES_PASSWORD: drupal10
+        POSTGRES_DB: drupal10
+      healthcheck:
+        test: ["CMD-SHELL", "exit 0"]
+
+  adminer:
+    type: compose
+    services:
+      image: dehy/adminer
+      command: /bin/s6-svscan /etc/services.d
+    portforward: true
+  mailhog:
+    type: mailhog
+    hogfrom:
+      - appserver
+    portforward: true
+  # node:
+  #   type: node:20
+  #   globals:
+  #     gulp-cli: latest
+  #   overrides:
+  #     ports:
+  #       - '31632:31632'
+  #   ssl: true
+  #   sslExpose: false
+proxy:
+  adminer:
+    - adminer.wcmt.lndo.site
+  mailhog:
+    - mail.wcmt.lndo.site
+
+volumes:
+  pgadmin_data:
+
+tooling:
+  drush:
+    service: appserver
+    cmd: ./vendor/bin/drush
+  phpunit:
+    service: appserver
+    cmd: ./vendor/bin/phpunit
+  # node:
+  #   service: node
+  # npm:
+  #   service: node
+  # npx:
+  #   service: node
+  # gulp:
+  #   service: node
+  #   dir: '/app/web/themes/custom/YOUR_THEME'
+  #   cmd: gulp watch
+  # gulp-compile:
+  #   service: node
+  #   dir: '/app/web/themes/custom/YOUR_THEME'
+  #   cmd: gulp compile
+  xoff:
+    cmd: |
+      sed -i 's/^zend_extension=xdebug.so/;zend_extension=xdebug.so/' /app/php.ini && kill -USR2 1
+    description: Disable xdebug.
+    service: appserver
+    user: root
+
+  xon:
+    cmd: |
+      sed -i 's/^;zend_extension=xdebug.so/zend_extension=xdebug.so/' /app/php.ini && kill -USR2 1
+    description: Enable xdebug.
+    service: appserver
+    user: root
+
+  bup:
+    service: appserver
+    description: Branch update (composer, db updates, config).
+    cmd:
+      - composer install
+      - drush cr
+      - drush updb
+      - drush cim -y
+      - drush cr

@@ -16,14 +16,13 @@
     ],
     "require": {
         "composer/installers": "^2.3",
+        "cweagans/composer-patches": "^1.7",
         "drupal/admin_toolbar": "^3.5",
+        "drupal/backup_migrate": "^5.1",
         "drupal/core-composer-scaffold": "^10.1",
         "drupal/core-project-message": "^10.1",
         "drupal/core-recommended": "^10.1",
-        "drush/drush": "^12",
-        "cweagans/composer-patches": "^1.7",
-        "drupal/backup_migrate": "^5.1"
-
+        "drush/drush": "^12"
     },
     "conflict": {
         "drupal/drupal": "*"
