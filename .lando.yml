@@ -55,6 +55,23 @@ services:
       image: dehy/adminer
       command: /bin/s6-svscan /etc/services.d
     portforward: true
+  pgadmin:
+    type: compose
+    app_mount: false
+    services:
+      image: dpage/pgadmin4
+      command: /entrypoint.sh
+      environment:
+        PGADMIN_DEFAULT_EMAIL: admin@admin.com
+        PGADMIN_DEFAULT_PASSWORD: root
+      ports:
+        - "127.0.0.1::80"
+      volumes:
+        - ./pgadmin/servers.json:/pgadmin4/servers.json
+        - pgadmin_data:/var/lib/pgadmin
+      depends_on:
+        - database
+
   mailhog:
     type: mailhog
     hogfrom:
@@ -74,6 +91,8 @@ proxy:
     - adminer.wcmt.lndo.site
   mailhog:
     - mail.wcmt.lndo.site
+  pgadmin:
+    - pgadmin.wcmt.lndo.site
 
 volumes:
   pgadmin_data:

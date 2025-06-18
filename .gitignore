@@ -10,7 +10,7 @@
 /web/themes/contrib/
 /web/profiles/contrib/
 /private/
-
+/pgadmin_data/
 /web/libraries/*
 # !/web/libraries/slick
 # !/web/libraries/mousewheel
