@@ -11,21 +11,6 @@ config:
 
 services:
   appserver:
-    # build_as_root:
-    #   - apt-get update && apt-get install -y wget curl ca-certificates gnupg lsb-release software-properties-common
-    #   - echo "deb [signed-by=/usr/share/keyrings/postgres.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-    #   - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /usr/share/keyrings/postgres.gpg
-    #   - apt-get update && apt-get install -y postgresql-client-16
-    #   - mkdir -p /usr/local/share/ca-certificates/custom
-    #   - cp /app/certs/*.crt /usr/local/share/ca-certificates/custom/
-    #   - update-ca-certificates
-    #   - cp /app/certs/MenloSecurityRootH1.crt /etc/ssl/certs/MenloSecurityRootH1.pem
-    #   - c_rehash /etc/ssl/certs
-    #   - cat /etc/ssl/certs/MenloSecurityRootH1.pem >> /etc/ssl/certs/ca-certificates.crt
-
-    mounts:
-      - ./scripts/bootstrap-avd.sh:/app/bootstrap-avd.sh
-
     overrides:
       environment:
         PHP_MEMORY_LIMIT: "512M"
@@ -37,15 +22,6 @@ services:
     ssl: true
     xdebug: true
     composer_version: 2.8.8
-    tooling:
-      init:
-        service: appserver
-        description: Run custom init script
-        cmd: /app/php-ubuntu/init.sh
-      init-avd:
-        service: appserver
-        description: Init PostgreSQL client + certs for AVD
-        cmd: bash /app/bootstrap-avd.sh
 
   database:
     type: postgres:16
@@ -105,7 +81,7 @@ volumes:
 
 events:
   post-start:
-    - appserver: /app/php-ubuntu/bootstrap-avd.sh
+    - appserver: ./scripts/bootstrap-avd.sh
 
 tooling:
   drush:
@@ -139,6 +115,17 @@ tooling:
       - drush updb
       - drush cim -y
       - drush cr
+
+  init:
+    service: appserver
+    description: Run custom init script
+    cmd: /app/php-ubuntu/init.sh
+
+  init-avd:
+    service: appserver
+    description: Init PostgreSQL client + certs for AVD
+    cmd: bash /app/scripts/bootstrap-avd.sh
+    user: root
 
   export-db:
     service: appserver
@@ -208,7 +195,4 @@ tooling:
         if [ -z "$SQL_PATH" ]; then echo "You must provide a path."; exit 1; fi;
         if [ ! -f "$SQL_PATH" ]; then echo "File not found: $SQL_PATH"; exit 1; fi;
         echo "Importing full PostgreSQL dump (roles + databases)...";
-        if [[ "$SQL_PATH" == *.gz ]]; then gunzip -c "$SQL_PATH" | PGPASSWORD=postgres psql -U postgres -h database;
-        else cat "$SQL_PATH" | PGPASSWORD=postgres psql -U postgres -h database; fi;
-        echo "Full import complete."
-      '
+        if [[ "$SQL_PATH" == *.gz ]]; then gunzip -c "$SQL_PATH" | PGPAS_*_]()]()
